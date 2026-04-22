@@ -1,0 +1,486 @@
+Name,Description,Section,Priority,Tags,Status
+Xcode project setup (iOS 26.4 target),"Xcode project with auto-synced file group, Swift 5, iOS 26.4 deployment target.
+
+Acceptance:
+- Project builds for iOS Simulator + physical device
+- New files auto-included via PBXFileSystemSynchronizedRootGroup
+
+Estimate: S
+Dependencies: none",✅ M0 — Foundation (Complete),Low,setup;ios,Complete
+Design system (Theme.swift),"Central color palette, typography helpers, currency formatter.
+
+Acceptance:
+- FC enum exposes forest/lime/sun/paper/ink + semantic colors
+- Color(hex:) extension works
+- baht() formatter returns '฿1,234'
+- serif(size:) helper renders Instrument Serif with system fallback
+
+Estimate: S",✅ M0 — Foundation (Complete),Low,design-system;swiftui,Complete
+Data models (Station + Connector),"Codable/Identifiable/Hashable models + sample data for 4 stations.
+
+Acceptance:
+- Station.all returns sample stations
+- Station.find(_:) lookup by id
+- Connector.isDrone flag works
+
+Estimate: S",✅ M0 — Foundation (Complete),Low,data-layer,Complete
+Router + shared components,"ObservableObject router, CardView, Pill, StationCardView, TopNav, PrimaryCTA, DroneGlyph, etc.
+
+Acceptance:
+- Router.goto(_:stationId:) animates transitions
+- All 8+ shared components reusable across screens
+
+Estimate: M",✅ M0 — Foundation (Complete),Low,swiftui;shared-views,Complete
+Port 9 screens from Claude Design to SwiftUI,"Onboarding, Map, Search, Station Detail, Booking, Payment, Active Charging, Profile, Trip History.
+
+Acceptance:
+- All screens pixel-match original design
+- Thai-first copy throughout
+- Animations (pager dots, ring, bottom sheet drag) working
+
+Estimate: XL",✅ M0 — Foundation (Complete),Low,ui;swiftui,Complete
+Build verification (Simulator + device),"Verify clean builds on generic iOS Simulator and iPhone 17 Pro (iOS 26.4).
+
+Acceptance:
+- No compile errors/warnings
+- xcodebuild returns BUILD SUCCEEDED for both destinations
+
+Estimate: S",✅ M0 — Foundation (Complete),Low,build,Complete
+Define REST API contract (OpenAPI spec),"Document all endpoints: stations (list/detail/availability), bookings (create/cancel/status), users, payments, trip history.
+
+Acceptance:
+- openapi.yaml covers all 9 screens' data needs
+- Request/response schemas match Station/Connector models
+- Error responses standardized (code + message + i18n key)
+- Document auth header requirements
+
+Estimate: M
+Blocks: all other M1 tasks",🔥 M1 — Backend & Data Layer,High,api;design,Not Started
+Networking layer (URLSession + async/await + Codable),"Build APIClient with typed endpoints, auth header injection, retry, request cancellation.
+
+Acceptance:
+- APIClient.request(_:) generic over Decodable
+- Handles 401 → triggers re-auth
+- Timeouts + exponential backoff retry (3 attempts)
+- Unit tests cover happy path + error paths
+
+Estimate: M
+Dependencies: API contract",🔥 M1 — Backend & Data Layer,High,networking;swift,Not Started
+Replace sample Station.all with API,"Wire MapScreenView and related views to fetch from /stations endpoint instead of Station.all hard-coded array.
+
+Acceptance:
+- Map + station cards populate from API
+- Loading/error/empty states implemented
+- Pull-to-refresh on station list
+
+Estimate: M
+Dependencies: Networking layer",🔥 M1 — Backend & Data Layer,High,integration,Not Started
+Real-time station availability polling,"Poll /stations/:id/availability every 30s when detail screen is visible; stop on disappear.
+
+Acceptance:
+- AvailDot updates without manual refresh
+- Polling pauses when app backgrounds
+- No retain cycles (verified with Instruments)
+
+Estimate: M",🔥 M1 — Backend & Data Layer,Medium,realtime,Not Started
+Local cache with SwiftData,"Persist stations + user trips so app works briefly offline and cold-starts instantly.
+
+Acceptance:
+- Stations cached on successful fetch
+- TTL 10 min for availability, 24h for static fields
+- Cache invalidation on manual refresh
+
+Estimate: L
+Dependencies: Networking layer",🔥 M1 — Backend & Data Layer,Medium,persistence;swiftdata,Not Started
+Error handling + user-facing error UI,"Global error banner + inline retry buttons. All API errors mapped to user-friendly Thai copy.
+
+Acceptance:
+- Network errors show retry CTA
+- 4xx errors show descriptive message
+- 5xx errors show 'ลองใหม่' with exponential backoff
+
+Estimate: M",🔥 M1 — Backend & Data Layer,Medium,ux;error-handling,Not Started
+Sign in with Apple integration,"Add Sign in with Apple button on onboarding + post-auth routing to Map screen.
+
+Acceptance:
+- Apple credential exchanged with backend for session token
+- Token stored in Keychain
+- Handles credential revoked case
+
+Estimate: M
+Dependencies: Auth backend endpoint",🔐 M2 — Authentication,High,auth;apple-signin,Not Started
+Phone OTP flow (Thai mobile numbers),"Alternate sign-in via +66 phone number + 6-digit OTP.
+
+Acceptance:
+- Phone input with +66 prefix auto-formatted
+- OTP resend cooldown (30s)
+- OTP auto-fill from SMS via ASAuthorizationAppleIDProvider-style hint
+- Rate limiting handled gracefully
+
+Estimate: L",🔐 M2 — Authentication,High,auth;otp,Not Started
+Keychain-backed token storage,"Store session tokens securely; auto-refresh on 401.
+
+Acceptance:
+- Tokens survive app relaunch but not device wipe
+- Biometric gate (Face ID) optional toggle in Profile
+- Unit tests for KeychainService
+
+Estimate: M",🔐 M2 — Authentication,High,security;keychain,Not Started
+User profile API integration,"Wire ProfileView to /users/me. Allow edit name, language, saved vehicles.
+
+Acceptance:
+- Profile loads from API with loading state
+- Edits PATCH to server and update local state
+- Optimistic UI with rollback on error
+
+Estimate: M
+Dependencies: Auth + Networking",🔐 M2 — Authentication,Medium,profile,Not Started
+Sign-out flow + session revocation,"Profile → sign-out clears Keychain, calls /auth/revoke, returns to Onboarding.
+
+Acceptance:
+- All cached user data cleared
+- Router resets to .onboarding
+- Confirmation dialog prevents accidental taps
+
+Estimate: S",🔐 M2 — Authentication,Medium,auth,Not Started
+MapKit integration (replace Canvas map),"Swap stylized Canvas map for MKMapView with custom tile styling to retain brand feel.
+
+Acceptance:
+- Real geographic map centered on user location
+- Custom map configuration (muted colors matching FC palette)
+- Graceful fallback if location denied
+- Preserves bottom-sheet interaction
+
+Estimate: L
+Dependencies: Location permission flow",🗺️ M3 — Real Map Integration,High,mapkit;ios,Not Started
+Station pin annotations with clustering,"Custom MKAnnotationView for stations + clustering when zoomed out.
+
+Acceptance:
+- Pin design matches MapPin Canvas mock (forest + lime bolt)
+- Solar badge visible on solar-powered stations
+- Clusters show count; tap to zoom in
+
+Estimate: M
+Dependencies: MapKit integration",🗺️ M3 — Real Map Integration,High,mapkit;ui,Not Started
+Location permission + user dot,"Request WhenInUse authorization with clear Thai rationale; show user blue dot + halo.
+
+Acceptance:
+- Permission primer screen explains why location is needed
+- Denied state shows CTA to open Settings
+- Privacy manifest (PrivacyInfo.xcprivacy) declares location use
+
+Estimate: M",🗺️ M3 — Real Map Integration,High,location;privacy,Not Started
+Region-based station fetching,"Fetch stations for visible map region + re-query on significant pan/zoom.
+
+Acceptance:
+- Debounced to avoid spam on fast panning (500ms)
+- Only fetch stations within current MKCoordinateRegion
+- Cache results by geohash cell
+
+Estimate: M
+Dependencies: MapKit + Networking",🗺️ M3 — Real Map Integration,Medium,performance,Not Started
+Directions / routing to selected station,"Tap station → open Apple Maps with directions, or inline MKDirections overlay.
+
+Acceptance:
+- Primary flow: inline route polyline + ETA
+- Fallback: 'Open in Apple Maps' button
+- Respects user's preferred transport mode
+
+Estimate: M",🗺️ M3 — Real Map Integration,Medium,navigation,Not Started
+EMVCo-compliant PromptPay QR generation,"Replace FakeQR Canvas with real EMVCo QR spec (PPQR1 merchant-presented).
+
+Acceptance:
+- QR payload matches Bank of Thailand spec
+- CRC16-CCITT checksum correct
+- Amount encoded dynamically per booking
+- Scanned by multiple Thai banking apps successfully (manual test log)
+
+Estimate: L
+Dependencies: PromptPay merchant ID from partner",💳 M4 — Payments (Production),High,payments;promptpay,Not Started
+Integrate payment gateway (Omise or 2C2P),"Pick and integrate Thai-supporting gateway for card + wallet processing.
+
+Acceptance:
+- Card tokenization via iframe/SDK (no PAN touches our backend)
+- 3DS challenge flow handled
+- Webhook endpoint validates signature
+- Refund API wired to admin backend
+
+Estimate: XL
+Dependencies: Gateway merchant account",💳 M4 — Payments (Production),High,payments;gateway,Not Started
+TrueMoney Wallet integration,"Deep-link flow or in-app SDK for TrueMoney Wallet checkout.
+
+Acceptance:
+- Redirect → TrueMoney app → return to FarmCharge via Universal Link
+- Handles cancel/failure/timeout states
+- Receipt stored on success
+
+Estimate: M
+Dependencies: Payment gateway",💳 M4 — Payments (Production),Medium,payments;truemoney,Not Started
+Rabbit LINE Pay integration,"Similar flow for LINE Pay; handles LINE app not installed case.
+
+Acceptance:
+- Works with and without LINE app installed (web fallback)
+- Transaction status reconciled via backend webhook
+
+Estimate: M",💳 M4 — Payments (Production),Medium,payments;line-pay,Not Started
+Receipt persistence + PDF export,"Save paid sessions locally + generate PDF receipt for download/email.
+
+Acceptance:
+- Receipts list in Profile → History accessible offline
+- Share sheet exports PDF with tax-invoice fields
+- Thai tax ID field optional per user
+
+Estimate: M",💳 M4 — Payments (Production),Medium,payments;receipts,Not Started
+APNS setup + device registration,"Configure Push Notifications capability, register device token, send to backend.
+
+Acceptance:
+- Permission primer explains notification categories
+- Device token rotation handled
+- Backend stores token per user
+
+Estimate: S",🔔 M5 — Notifications & Offline,High,notifications,Not Started
+Charging progress notifications,"Push when charge reaches 80%, 100%, or stalls.
+
+Acceptance:
+- Backend triggers based on telemetry from charger
+- Rich notification with station name + progress
+- Tap opens Active Charging screen
+
+Estimate: M
+Dependencies: APNS + Backend telemetry integration",🔔 M5 — Notifications & Offline,Medium,notifications,Not Started
+Booking reminders,"Local notification 15 min before booked slot.
+
+Acceptance:
+- Scheduled on booking success; canceled on cancellation
+- Customizable lead time in Profile settings
+
+Estimate: S",🔔 M5 — Notifications & Offline,Medium,notifications,Not Started
+Offline station cache + network reachability UI,"When offline, show cached stations with 'ข้อมูลล่าสุด: X ชม. ที่แล้ว' badge + disable booking.
+
+Acceptance:
+- NWPathMonitor drives app-wide online/offline state
+- Map/list still render from SwiftData
+- Booking CTA disabled with clear message
+
+Estimate: M
+Dependencies: Local cache task",🔔 M5 — Notifications & Offline,Medium,offline,Not Started
+Background refresh for availability,"BGAppRefreshTask to update station availability periodically.
+
+Acceptance:
+- Registered in Info.plist
+- Updates cache on successful run
+- Respects system throttling
+
+Estimate: M",🔔 M5 — Notifications & Offline,Low,background,Not Started
+String Catalog (Thai + English),"Migrate all hardcoded Thai strings to .xcstrings; add English translations.
+
+Acceptance:
+- No literal Thai strings in view code
+- Language toggle in Profile persists preference
+- Pluralization handled for counts (ช่อง/ชม./นาที)
+
+Estimate: L",🌐 M6 — Localization & Accessibility,High,i18n,Not Started
+VoiceOver labels for all interactive elements,"Add accessibilityLabel/Value/Hint where SwiftUI defaults are insufficient.
+
+Acceptance:
+- All buttons have descriptive labels (not 'button' or icon name)
+- Charging ring announces percentage + time remaining
+- Map pins announce station name + availability
+
+Estimate: M",🌐 M6 — Localization & Accessibility,High,a11y;voiceover,Not Started
+Dynamic Type support audit,"Ensure layouts adapt to accessibility text sizes (XXL → AX5) without clipping.
+
+Acceptance:
+- Test at all 12 text size settings
+- No truncated CTAs or overlapping text
+- Scrollable where needed
+
+Estimate: M",🌐 M6 — Localization & Accessibility,Medium,a11y;dynamic-type,Not Started
+Color contrast audit (WCAG AA),"Verify all text meets 4.5:1 contrast ratio; fix offenders.
+
+Acceptance:
+- Automated check with Accessibility Inspector
+- Muted text colors darkened if failing
+- Dark-on-dark states (Active Charging) verified
+
+Estimate: S",🌐 M6 — Localization & Accessibility,Medium,a11y;contrast,Not Started
+Unit tests: Router + formatters + models,"XCTest target covering Router transitions, baht() formatter, Station.find(_:), Connector.isDrone.
+
+Acceptance:
+- > 80% line coverage on tested files
+- Runs in under 5s
+- Router tests verify animation flag + state mutation
+
+Estimate: M",🧪 M7 — Testing & CI/CD,High,testing;xctest,Not Started
+UI tests: Onboarding → Map → Booking → Payment golden path,"XCUITest covering the full happy path end-to-end.
+
+Acceptance:
+- Runs on iPhone 17 Pro simulator
+- Uses accessibility identifiers (not label text) for stability
+- Screenshots captured at each step for visual diff
+
+Estimate: L
+Dependencies: Accessibility identifiers added to views",🧪 M7 — Testing & CI/CD,High,testing;xcuitest,Not Started
+GitHub Actions CI pipeline,"Build + unit tests + UI tests on every PR to main.
+
+Acceptance:
+- .github/workflows/ci.yml runs on macOS-14 runner with Xcode 26
+- Caches Derived Data + SPM between runs
+- Posts test results as PR comment
+- Fails PR if coverage drops > 2%
+
+Estimate: M",🧪 M7 — Testing & CI/CD,High,ci-cd;github-actions,Not Started
+TestFlight automation with Fastlane,"Automate beta builds + upload to TestFlight on main branch pushes.
+
+Acceptance:
+- fastlane beta lane working locally
+- GitHub Actions uses encrypted match for code signing
+- Release notes generated from recent commits
+
+Estimate: M
+Dependencies: Apple Developer membership + App Store Connect API key",🧪 M7 — Testing & CI/CD,Medium,ci-cd;fastlane,Not Started
+Code coverage reporting (Codecov),"Publish coverage reports on each CI run + enforce threshold.
+
+Acceptance:
+- codecov.io integrated
+- README badge shows current coverage
+- PRs show coverage delta
+
+Estimate: S",🧪 M7 — Testing & CI/CD,Low,ci-cd;coverage,Not Started
+App icon design (1024×1024 + variants),"Commission or create app icon that reflects FarmCharge brand (forest + lime + solar motif).
+
+Acceptance:
+- All required sizes exported to Assets.xcassets
+- Dark + tinted variants for iOS 18+
+- Matches brand palette
+
+Estimate: M",🚀 M8 — App Store Release,High,design;branding,Not Started
+Launch screen,"Replace default launch screen with branded splash.
+
+Acceptance:
+- Matches onboarding first-slide aesthetic
+- No flash-of-unstyled-content between launch + first view
+
+Estimate: S",🚀 M8 — App Store Release,Medium,design,Not Started
+App Store screenshots (6.9in + 6.7in + 6.5in),"Curated screenshots with Thai copy + English copy for key screens.
+
+Acceptance:
+- 5 screenshots per language per device size
+- Captions highlight key value props
+- Consistent device frame style
+
+Estimate: M",🚀 M8 — App Store Release,High,marketing,Not Started
+App Store metadata (Thai + English),"Description, keywords, promotional text, subtitle, support URL.
+
+Acceptance:
+- Meets 4000-char description + 100-char subtitle limits
+- Keywords researched for rural EV + agricultural drone terms
+- Privacy Policy URL live
+
+Estimate: M",🚀 M8 — App Store Release,High,marketing;aso,Not Started
+Privacy manifest (PrivacyInfo.xcprivacy),"Declare all tracking + data collection per Apple's 2024+ requirements.
+
+Acceptance:
+- Manifest covers location, contact info, payment info, diagnostics
+- Required-reason APIs documented
+- Third-party SDKs also include manifests
+
+Estimate: M",🚀 M8 — App Store Release,High,privacy;compliance,Not Started
+Terms of Service + Privacy Policy (bilingual),"Legal pages hosted + linked from Profile. Thai + English versions required.
+
+Acceptance:
+- PDPA-compliant (Thailand Personal Data Protection Act)
+- GDPR-ready for future expansion
+- Clear data retention + deletion policy
+
+Estimate: L
+Dependencies: Legal review",🚀 M8 — App Store Release,High,legal;compliance,Not Started
+TestFlight external beta (50 farmers),"Recruit beta testers from target market; collect structured feedback.
+
+Acceptance:
+- Tester guide (Thai) with what to test + how to report
+- In-app feedback form or external survey
+- Bug triage workflow defined
+
+Estimate: L
+Dependencies: TestFlight automation + App metadata",🚀 M8 — App Store Release,Medium,beta-test,Not Started
+Submit for App Store review,"Final submission with all assets, metadata, and compliance items.
+
+Acceptance:
+- Pre-review checklist passed (App Store Review Guidelines)
+- Demo account credentials provided for reviewer
+- Response plan ready for rejection
+
+Estimate: M
+Dependencies: ALL M8 tasks + successful beta",🚀 M8 — App Store Release,High,release,Not Started
+Route planning between fields,"Multi-stop routing for farmers visiting multiple fields in a day; optimize charging stops.
+
+Acceptance:
+- User adds multiple field coordinates
+- Optimal route + charging plan calculated
+- Shows battery/charge state per leg
+
+Estimate: XL",💡 M9 — V2 Features,Low,feature,Not Started
+Community reviews + ratings,"Replace mock reviews with real user-generated reviews. Moderation tooling required.
+
+Acceptance:
+- Users can rate + write review post-session
+- Moderation queue in admin
+- Abuse reporting flow
+
+Estimate: L",💡 M9 — V2 Features,Low,feature;social,Not Started
+Real-time solar indicator,"Pull live solar generation data from stations equipped with IoT sensors; display kW being generated.
+
+Acceptance:
+- Solar stations show current kW + daily total
+- Graceful degradation when IoT offline
+
+Estimate: L
+Dependencies: Station IoT hardware rollout",💡 M9 — V2 Features,Low,feature;iot,Not Started
+Multi-vehicle / multi-drone support,"Users add multiple vehicles + drones to profile; per-asset trip history.
+
+Acceptance:
+- CRUD for vehicles + drones in Profile
+- Booking flow picks asset from user's list
+- History filterable by asset
+
+Estimate: L",💡 M9 — V2 Features,Low,feature,Not Started
+Dark mode,"Full dark palette using existing 'midnight' color tokens.
+
+Acceptance:
+- All screens support both color schemes
+- Active Charging (already dark) stays consistent
+- User toggle in Profile: System/Light/Dark
+
+Estimate: L",💡 M9 — V2 Features,Low,feature;ui,Not Started
+Apple Watch companion app,"Glanceable charging progress + remote stop on watchOS.
+
+Acceptance:
+- Complication shows active session %
+- Watch app streams live stats via WatchConnectivity
+- Stop-charging action from watch
+
+Estimate: XL",💡 M9 — V2 Features,Low,feature;watchos,Not Started
+Architecture diagram,"Visual diagram of modules, data flow, external services.
+
+Acceptance:
+- Exported PNG + editable source (e.g., Excalidraw/Mermaid)
+- Added to README
+- Covers client, backend, payment, IoT boundaries
+
+Estimate: S",📸 Documentation,Low,docs,Not Started
+Demo video + GIFs,"Screen-recorded walkthrough of core flows for README + App Store preview.
+
+Acceptance:
+- 30-second App Store preview video per language
+- Short GIFs of key interactions embedded in README
+
+Estimate: M",📸 Documentation,Low,docs;marketing,Not Started
+Real screenshots in README,"Replace placeholder screenshot tables in README with actual captures.
+
+Acceptance:
+- 9 screenshots (one per screen) in /docs/screenshots/
+- README tables updated with image links
+- Consistent device frame
+
+Estimate: S",📸 Documentation,Low,docs,Not Started
