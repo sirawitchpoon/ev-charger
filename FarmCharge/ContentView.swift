@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  ev-charger
+//  FarmCharge
 //
 //  FarmCharge — EV & Drone Charger Finder
 //

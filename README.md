@@ -1,4 +1,4 @@
-# ⚡ ev-charger (FarmCharge)
+# ⚡ FarmCharge
 
 A native **iOS SwiftUI** prototype for discovering, booking, and paying for EV & agricultural-drone charging stations across rural Thailand. Designed for farmers and users outside major cities, with a clean, modern UI in Thai (primary) and English (secondary).
 
@@ -61,14 +61,14 @@ A native **iOS SwiftUI** prototype for discovering, booking, and paying for EV &
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/sirawitchpoon/ev-charger.git
-   cd ev-charger
+   git clone https://github.com/sirawitchpoon/FarmCharge.git
+   cd FarmCharge
    ```
 
 2. **Open in Xcode**
 
    ```bash
-   open ev-charger.xcodeproj
+   open FarmCharge.xcodeproj
    ```
 
 3. **Select a simulator** (iPhone 17 Pro / iPhone Air / iPhone 17e recommended) and press **⌘R** to build and run.
@@ -77,8 +77,8 @@ A native **iOS SwiftUI** prototype for discovering, booking, and paying for EV &
 
    ```bash
    xcodebuild \
-     -project ev-charger.xcodeproj \
-     -scheme ev-charger \
+     -project FarmCharge.xcodeproj \
+     -scheme FarmCharge \
      -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
      build
    ```
@@ -88,10 +88,10 @@ A native **iOS SwiftUI** prototype for discovering, booking, and paying for EV &
 ## 📂 Project Structure
 
 ```
-ev-charger/
-├── ev-charger.xcodeproj/          # Xcode project
-└── ev-charger/                    # App sources (auto-synced file group)
-    ├── ev_chargerApp.swift        # @main — SwiftUI App entry
+FarmCharge/
+├── FarmCharge.xcodeproj/          # Xcode project
+└── FarmCharge/                    # App sources (auto-synced file group)
+    ├── FarmChargeApp.swift        # @main — SwiftUI App entry
     ├── ContentView.swift          # Root screen router
     │
     ├── Theme.swift                # Color palette, fonts, baht formatter

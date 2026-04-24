@@ -1,4 +1,4 @@
-# 📊 ความคืบหน้าโปรเจค ev-charger (FarmCharge)
+# 📊 ความคืบหน้าโปรเจค FarmCharge
 
 **อัปเดตล่าสุด:** 23 เมษายน 2026
 **สถานะรวม:** 🟢 Prototype ใช้งานได้ครบทุกหน้า · พร้อมต่อยอดสู่ Production
@@ -9,7 +9,7 @@
 
 พัฒนา iOS แอพ **FarmCharge** สำหรับค้นหาสถานีชาร์จรถไฟฟ้าและโดรนเกษตรในชนบทไทย โดยนำดีไซน์จาก **Claude Design** (React/HTML prototype) มา port เป็น **Native SwiftUI** ทั้งหมด
 
-- **Repository:** https://github.com/sirawitchpoon/ev-charger
+- **Repository:** https://github.com/sirawitchpoon/FarmCharge
 - **Platform:** iOS 26.4+
 - **Stack:** Swift 5 + SwiftUI + Combine (ไม่มี third-party deps)
 - **Target users:** เกษตรกร / ผู้ใช้งานนอกเมือง
@@ -144,6 +144,6 @@
 
 ## 🔗 ลิงก์ที่เกี่ยวข้อง
 
-- **Repository:** https://github.com/sirawitchpoon/ev-charger
+- **Repository:** https://github.com/sirawitchpoon/FarmCharge
 - **Original design:** Claude Design bundle (ส่งมอบเมื่อ 19 เม.ย. 2026)
 - **README:** [`README.md`](./README.md)
